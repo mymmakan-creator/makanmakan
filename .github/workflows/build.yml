@@ -18,19 +18,19 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install esp32:esp32@2.0.17
           arduino-cli lib install WiFiManager ArduinoJson XPT2046_Touchscreen
+          arduino-cli lib install TFT_eSPI
+          arduino-cli lib install "lvgl@8.3.11"
 
-      - name: Fetch Aura source
+      - name: Fetch Aura source and configure display
         run: |
           git clone --depth 1 https://github.com/Surrey-Homeware/Aura.git vendor/Aura
           cp aura/weather.ino vendor/Aura/aura/aura.ino
-          mkdir -p build/libs
-          cp -r vendor/Aura/TFT_eSPI build/libs/TFT_eSPI
-          cp -r vendor/Aura/lvgl build/libs/lvgl
+          cp vendor/Aura/TFT_eSPI/User_Setup.h "$HOME/Arduino/libraries/TFT_eSPI/User_Setup.h"
 
       - name: Compile
         run: |
           mkdir -p build/out
-          arduino-cli compile             --fqbn esp32:esp32:esp32             --libraries build/libs             --libraries "$HOME/Arduino/libraries"             --export-binaries             --output-dir build/out             vendor/Aura/aura
+          arduino-cli compile             --fqbn esp32:esp32:esp32             --libraries "$HOME/Arduino/libraries"             --export-binaries             --output-dir build/out             vendor/Aura/aura
 
       - name: Merge firmware
         run: |
