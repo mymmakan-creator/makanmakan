@@ -26,6 +26,7 @@ jobs:
           git clone --depth 1 https://github.com/Surrey-Homeware/Aura.git vendor/Aura
           cp aura/weather.ino vendor/Aura/aura/aura.ino
           cp vendor/Aura/TFT_eSPI/User_Setup.h "$HOME/Arduino/libraries/TFT_eSPI/User_Setup.h"
+          cp vendor/Aura/lvgl/src/lv_conf.h "$HOME/Arduino/libraries/lvgl/lv_conf.h"
 
       - name: Compile
         run: |
