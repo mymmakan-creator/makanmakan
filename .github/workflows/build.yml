@@ -26,18 +26,18 @@ jobs:
           git clone --depth 1 https://github.com/Surrey-Homeware/Aura.git vendor/Aura
           cp aura/weather.ino vendor/Aura/aura/aura.ino
           cp vendor/Aura/TFT_eSPI/User_Setup.h "$HOME/Arduino/libraries/TFT_eSPI/User_Setup.h"
-          cp vendor/Aura/lvgl/src/lv_conf.h "$HOME/Arduino/libraries/lvgl/lv_conf.h"
+          cp vendor/Aura/lvgl/src/lv_conf.h "$HOME/Arduino/libraries/lv_conf.h"
 
       - name: Compile
         run: |
           mkdir -p build/out
-          arduino-cli compile             --fqbn esp32:esp32:esp32             --libraries "$HOME/Arduino/libraries"             --export-binaries             --output-dir build/out             vendor/Aura/aura
+          arduino-cli compile --fqbn esp32:esp32:esp32 --libraries "$HOME/Arduino/libraries" --export-binaries --output-dir build/out vendor/Aura/aura
 
       - name: Merge firmware
         run: |
           python3 -m pip install esptool
           mkdir -p firmware
-          python3 -m esptool --chip esp32 merge-bin             -o firmware/aura-e32r28t.bin             --flash-mode dio             --flash-size detect             0x1000 build/out/aura.ino.bootloader.bin             0x8000 build/out/aura.ino.partitions.bin             0x10000 build/out/aura.ino.bin
+          python3 -m esptool --chip esp32 merge-bin -o firmware/aura-e32r28t.bin --flash-mode dio --flash-size detect 0x1000 build/out/aura.ino.bootloader.bin 0x8000 build/out/aura.ino.partitions.bin 0x10000 build/out/aura.ino.bin
 
       - uses: actions/upload-artifact@v4
         with:
