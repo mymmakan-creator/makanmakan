@@ -19,25 +19,25 @@ jobs:
           arduino-cli core install esp32:esp32@2.0.17
           arduino-cli lib install WiFiManager ArduinoJson XPT2046_Touchscreen
           arduino-cli lib install TFT_eSPI
-          arduino-cli lib install "lvgl@8.3.11"
+          arduino-cli lib install "lvgl@9.2.2"
 
       - name: Fetch Aura source and configure display
         run: |
           git clone --depth 1 https://github.com/Surrey-Homeware/Aura.git vendor/Aura
-          cp aura/weather.ino vendor/Aura/aura/aura.ino
+          cp aura/weather.ino vendor/Aura/aura/weather.ino
           cp vendor/Aura/TFT_eSPI/User_Setup.h "$HOME/Arduino/libraries/TFT_eSPI/User_Setup.h"
           cp vendor/Aura/lvgl/src/lv_conf.h "$HOME/Arduino/libraries/lv_conf.h"
 
       - name: Compile
         run: |
           mkdir -p build/out
-          arduino-cli compile --fqbn esp32:esp32:esp32 --libraries "$HOME/Arduino/libraries" --export-binaries --output-dir build/out vendor/Aura/aura
+          arduino-cli compile             --fqbn esp32:esp32:esp32             --board-options PartitionScheme=huge_app             --libraries "$HOME/Arduino/libraries"             --export-binaries             --output-dir build/out             vendor/Aura/aura
 
       - name: Merge firmware
         run: |
           python3 -m pip install esptool
           mkdir -p firmware
-          python3 -m esptool --chip esp32 merge-bin -o firmware/aura-e32r28t.bin --flash-mode dio --flash-size detect 0x1000 build/out/aura.ino.bootloader.bin 0x8000 build/out/aura.ino.partitions.bin 0x10000 build/out/aura.ino.bin
+          python3 -m esptool --chip esp32 merge-bin             -o firmware/aura-e32r28t.bin             --flash-mode dio             --flash-freq 40m             --flash-size 4MB             0x1000 build/out/weather.ino.bootloader.bin             0x8000 build/out/weather.ino.partitions.bin             0xe000 ~/.arduino15/packages/esp32/hardware/esp32/2.0.17/tools/partitions/boot_app0.bin             0x10000 build/out/weather.ino.bin
 
       - uses: actions/upload-artifact@v4
         with:
