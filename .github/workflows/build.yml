@@ -1,37 +1,48 @@
 name: Build Aura E32R28T
 on: [push, workflow_dispatch]
+
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: arduino/setup-arduino-cli@v2
+
       - name: Install ESP32 core and libraries
         run: |
           arduino-cli config init
           arduino-cli core update-index
           arduino-cli core install esp32:esp32@2.0.17
           arduino-cli lib install WiFiManager ArduinoJson XPT2046_Touchscreen
+
       - name: Fetch Aura source
         run: |
           git clone --depth 1 https://github.com/Surrey-Homeware/Aura.git vendor/Aura
-          cp aura/weather.ino vendor/Aura/aura/weather.ino
+          cp aura/weather.ino vendor/Aura/aura/aura.ino
           mkdir -p build/libs
           cp -r vendor/Aura/TFT_eSPI build/libs/TFT_eSPI
           cp -r vendor/Aura/lvgl build/libs/lvgl
+
       - name: Compile
         run: |
           mkdir -p build/out
-          arduino-cli compile --fqbn esp32:esp32:esp32 --libraries build/libs --libraries "$HOME/Arduino/libraries" --export-binaries --output-dir build/out vendor/Aura/aura
+          arduino-cli compile             --fqbn esp32:esp32:esp32             --libraries build/libs             --libraries "$HOME/Arduino/libraries"             --export-binaries             --output-dir build/out             vendor/Aura/aura
+
       - name: Merge firmware
         run: |
           python3 -m pip install esptool
           mkdir -p firmware
-          python3 -m esptool --chip esp32 merge-bin -o firmware/aura-e32r28t.bin --flash-mode dio --flash-size detect 0x1000 build/out/aura.ino.bootloader.bin 0x8000 build/out/aura.ino.partitions.bin 0x10000 build/out/aura.ino.bin
+          python3 -m esptool --chip esp32 merge-bin             -o firmware/aura-e32r28t.bin             --flash-mode dio             --flash-size detect             0x1000 build/out/aura.ino.bootloader.bin             0x8000 build/out/aura.ino.partitions.bin             0x10000 build/out/aura.ino.bin
+
       - uses: actions/upload-artifact@v4
         with:
           name: aura-e32r28t-firmware
           path: firmware/aura-e32r28t.bin
+
       - uses: EndBug/add-and-commit@v9
         with:
           add: firmware/aura-e32r28t.bin
