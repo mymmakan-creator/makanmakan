@@ -31,15 +31,45 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      - name: Prepare web files
+      - name: Prepare fresh web files
         run: |
-          mkdir -p web/firmware
-          cp firmware/aura-e32r28t.bin web/firmware/aura-e32r28t.bin
+          rm -rf site
+          cp -R web site
+          mkdir -p site/firmware
+          cp firmware/aura-e32r28t.bin "site/firmware/aura-e32r28t-${GITHUB_SHA}.bin"
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("site")
+          version = "${GITHUB_SHA}"
+
+          manifest = json.loads((root / "manifest-pages.json").read_text())
+          manifest["version"] = version
+          manifest["builds"][0]["parts"][0]["path"] = f"./firmware/aura-e32r28t-{version}.bin"
+          (root / "manifest-pages.json").write_text(
+              json.dumps(manifest, indent=2) + "\n"
+          )
+
+          index = (root / "index.html").read_text()
+          index = index.replace(
+              'manifest="./manifest-pages.json"',
+              f'manifest="./manifest-pages.json?v={version}"'
+          )
+          (root / "index.html").write_text(index)
+          PY
+
+      - name: Verify deployed firmware inputs
+        run: |
+          test -s "site/firmware/aura-e32r28t-${GITHUB_SHA}.bin"
+          grep -q "aura-e32r28t-${GITHUB_SHA}.bin" site/manifest-pages.json
+          grep -q "manifest-pages.json?v=${GITHUB_SHA}" site/index.html
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
-          path: './web'
+          path: './site'
 
       - name: Deploy
         id: deployment
