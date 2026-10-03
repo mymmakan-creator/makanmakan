@@ -697,3 +697,652 @@ void create_location_dialog() {
 
   lv_obj_add_event_cb(loc_ta, ta_event_cb, LV_EVENT_CLICKED, kb);
   lv_obj_add_event_cb(loc_ta, ta_defocus_cb, LV_EVENT_DEFOCUSED, kb);
+  lv_obj_t *lbl2 = lv_label_create(cont);
+  lv_label_set_text(lbl2, strings->search_results);
+  lv_obj_set_style_text_font(lbl2, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align(lbl2, LV_ALIGN_TOP_LEFT, 5, 50);
+
+  results_dd = lv_dropdown_create(cont);
+  lv_obj_set_width(results_dd, 200);
+  lv_obj_align(results_dd, LV_ALIGN_TOP_LEFT, 5, 70);
+  lv_obj_set_style_text_font(results_dd, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_font(results_dd, get_font_14(), LV_PART_SELECTED | LV_STATE_DEFAULT);
+
+  lv_obj_t *list = lv_dropdown_get_list(results_dd);
+  lv_obj_set_style_text_font(list, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+  lv_dropdown_set_options(results_dd, "");
+  lv_obj_clear_flag(results_dd, LV_OBJ_FLAG_CLICKABLE);
+
+  btn_close_loc = lv_btn_create(cont);
+  lv_obj_set_size(btn_close_loc, 80, 40);
+  lv_obj_align(btn_close_loc, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+
+  lv_obj_add_event_cb(btn_close_loc, location_save_event_cb, LV_EVENT_CLICKED, &geoResults);
+  lv_obj_set_style_bg_color(btn_close_loc, lv_palette_main(LV_PALETTE_GREY), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_bg_opa(btn_close_loc, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_bg_color(btn_close_loc, lv_palette_darken(LV_PALETTE_GREY, 1), LV_PART_MAIN | LV_STATE_PRESSED);
+  lv_obj_clear_flag(btn_close_loc, LV_OBJ_FLAG_CLICKABLE);
+
+  lv_obj_t *lbl_close = lv_label_create(btn_close_loc);
+  lv_label_set_text(lbl_close, strings->save);
+  lv_obj_set_style_text_font(lbl_close, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_center(lbl_close);
+
+  lv_obj_t *btn_cancel_loc = lv_btn_create(cont);
+  lv_obj_set_size(btn_cancel_loc, 80, 40);
+  lv_obj_align_to(btn_cancel_loc, btn_close_loc, LV_ALIGN_OUT_LEFT_MID, -5, 0);
+  lv_obj_add_event_cb(btn_cancel_loc, location_cancel_event_cb, LV_EVENT_CLICKED, &geoResults);
+
+  lv_obj_t *lbl_cancel = lv_label_create(btn_cancel_loc);
+  lv_label_set_text(lbl_cancel, strings->cancel);
+  lv_obj_set_style_text_font(lbl_cancel, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_center(lbl_cancel);
+}
+
+void create_settings_window() {
+  if (settings_win) return;
+
+  int vertical_element_spacing = 21;
+
+  const LocalizedStrings* strings = get_strings(current_language);
+  settings_win = lv_win_create(lv_scr_act());
+
+  lv_obj_t *header = lv_win_get_header(settings_win);
+  lv_obj_set_style_height(header, 30, 0);
+
+  lv_obj_t *title = lv_win_add_title(settings_win, strings->aura_settings);
+  lv_obj_set_style_text_font(title, get_font_16(), 0);
+  lv_obj_set_style_margin_left(title, 10, 0);
+
+  lv_obj_center(settings_win);
+  lv_obj_set_width(settings_win, 240);
+
+  lv_obj_t *cont = lv_win_get_content(settings_win);
+
+  // Brightness
+  lv_obj_t *lbl_b = lv_label_create(cont);
+  lv_label_set_text(lbl_b, strings->brightness);
+  lv_obj_set_style_text_font(lbl_b, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align(lbl_b, LV_ALIGN_TOP_LEFT, 0, 5);
+  lv_obj_t *slider = lv_slider_create(cont);
+  lv_slider_set_range(slider, 1, 255);
+  uint32_t saved_b = prefs.getUInt("brightness", 128);
+  lv_slider_set_value(slider, saved_b, LV_ANIM_OFF);
+  lv_obj_set_width(slider, 100);
+  lv_obj_align_to(slider, lbl_b, LV_ALIGN_OUT_RIGHT_MID, 10, 0);
+
+  lv_obj_add_event_cb(slider, [](lv_event_t *e){
+    lv_obj_t *s = (lv_obj_t*)lv_event_get_target(e);
+    uint32_t v = lv_slider_get_value(s);
+    analogWrite(LCD_BACKLIGHT_PIN, v);
+    prefs.putUInt("brightness", v);
+  }, LV_EVENT_VALUE_CHANGED, NULL);
+
+  // 'Night mode' switch
+  lv_obj_t *lbl_night_mode = lv_label_create(cont);
+  lv_label_set_text(lbl_night_mode, strings->use_night_mode);
+  lv_obj_set_style_text_font(lbl_night_mode, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_night_mode, lbl_b, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
+
+  night_mode_switch = lv_switch_create(cont);
+  lv_obj_align_to(night_mode_switch, lbl_night_mode, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
+  if (use_night_mode) {
+    lv_obj_add_state(night_mode_switch, LV_STATE_CHECKED);
+  } else {
+    lv_obj_remove_state(night_mode_switch, LV_STATE_CHECKED);
+  }
+  lv_obj_add_event_cb(night_mode_switch, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
+
+  // 'Use F' switch
+  lv_obj_t *lbl_u = lv_label_create(cont);
+  lv_label_set_text(lbl_u, strings->use_fahrenheit);
+  lv_obj_set_style_text_font(lbl_u, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_u, lbl_night_mode, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
+
+  unit_switch = lv_switch_create(cont);
+  lv_obj_align_to(unit_switch, lbl_u, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
+  if (use_fahrenheit) {
+    lv_obj_add_state(unit_switch, LV_STATE_CHECKED);
+  } else {
+    lv_obj_remove_state(unit_switch, LV_STATE_CHECKED);
+  }
+  lv_obj_add_event_cb(unit_switch, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
+
+  // 24-hr time switch
+  lv_obj_t *lbl_24hr = lv_label_create(cont);
+  lv_label_set_text(lbl_24hr, strings->use_24hr);
+  lv_obj_set_style_text_font(lbl_24hr, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_24hr, unit_switch, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
+
+  clock_24hr_switch = lv_switch_create(cont);
+  lv_obj_align_to(clock_24hr_switch, lbl_24hr, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
+  if (use_24_hour) {
+    lv_obj_add_state(clock_24hr_switch, LV_STATE_CHECKED);
+  } else {
+    lv_obj_clear_state(clock_24hr_switch, LV_STATE_CHECKED);
+  }
+  lv_obj_add_event_cb(clock_24hr_switch, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
+
+  // Current Location label
+  lv_obj_t *lbl_loc_l = lv_label_create(cont);
+  lv_label_set_text(lbl_loc_l, strings->location);
+  lv_obj_set_style_text_font(lbl_loc_l, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_loc_l, lbl_u, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
+
+  lbl_loc = lv_label_create(cont);
+  lv_label_set_text(lbl_loc, location.c_str());
+  lv_obj_set_style_text_font(lbl_loc, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_loc, lbl_loc_l, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
+
+  // Language selection
+  lv_obj_t *lbl_lang = lv_label_create(cont);
+  lv_label_set_text(lbl_lang, strings->language_label);
+  lv_obj_set_style_text_font(lbl_lang, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_lang, lbl_loc_l, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
+
+  language_dropdown = lv_dropdown_create(cont);
+  lv_dropdown_set_options(language_dropdown, "English\nEspañol\nDeutsch\nFrançais\nTürkçe\nSvenska\nItaliano");
+  lv_dropdown_set_selected(language_dropdown, current_language);
+  lv_obj_set_width(language_dropdown, 120);
+  lv_obj_set_style_text_font(language_dropdown, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_font(language_dropdown, get_font_12(), LV_PART_SELECTED | LV_STATE_DEFAULT);
+  lv_obj_t *list = lv_dropdown_get_list(language_dropdown);
+  lv_obj_set_style_text_font(list, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(language_dropdown, lbl_lang, LV_ALIGN_OUT_RIGHT_MID, 10, 0);
+  lv_obj_add_event_cb(language_dropdown, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
+
+  // Location search button
+  lv_obj_t *btn_change_loc = lv_btn_create(cont);
+  lv_obj_align_to(btn_change_loc, lbl_lang, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
+
+  lv_obj_set_size(btn_change_loc, 100, 40);
+  lv_obj_add_event_cb(btn_change_loc, change_location_event_cb, LV_EVENT_CLICKED, NULL);
+  lv_obj_t *lbl_chg = lv_label_create(btn_change_loc);
+  lv_label_set_text(lbl_chg, strings->location_btn);
+  lv_obj_set_style_text_font(lbl_chg, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_center(lbl_chg);
+
+  // Hidden keyboard object
+  if (!kb) {
+    kb = lv_keyboard_create(lv_scr_act());
+    lv_keyboard_set_mode(kb, LV_KEYBOARD_MODE_TEXT_LOWER);
+    lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_event_cb(kb, kb_event_cb, LV_EVENT_READY, NULL);
+    lv_obj_add_event_cb(kb, kb_event_cb, LV_EVENT_CANCEL, NULL);
+  }
+
+  // Reset WiFi button
+  lv_obj_t *btn_reset = lv_btn_create(cont);
+  lv_obj_set_style_bg_color(btn_reset, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_bg_color(btn_reset, lv_palette_darken(LV_PALETTE_RED, 1), LV_PART_MAIN | LV_STATE_PRESSED);
+  lv_obj_set_style_text_color(btn_reset, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_size(btn_reset, 100, 40);
+  lv_obj_align_to(btn_reset, btn_change_loc, LV_ALIGN_OUT_RIGHT_MID, 12, 0);
+
+  lv_obj_add_event_cb(btn_reset, reset_wifi_event_handler, LV_EVENT_CLICKED, nullptr);
+
+  lv_obj_t *lbl_reset = lv_label_create(btn_reset);
+  lv_label_set_text(lbl_reset, strings->reset_wifi);
+  lv_obj_set_style_text_font(lbl_reset, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_center(lbl_reset);
+
+  // Close Settings button
+  btn_close_obj = lv_btn_create(cont);
+  lv_obj_set_size(btn_close_obj, 80, 40);
+  lv_obj_align(btn_close_obj, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+  lv_obj_add_event_cb(btn_close_obj, settings_event_handler, LV_EVENT_CLICKED, NULL);
+
+  // Cancel button
+  lv_obj_t *lbl_btn = lv_label_create(btn_close_obj);
+  lv_label_set_text(lbl_btn, strings->close);
+  lv_obj_set_style_text_font(lbl_btn, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_center(lbl_btn);
+}
+
+static void settings_event_handler(lv_event_t *e) {
+  lv_event_code_t code = lv_event_get_code(e);
+  lv_obj_t *tgt = (lv_obj_t *)lv_event_get_target(e);
+
+  if (tgt == unit_switch && code == LV_EVENT_VALUE_CHANGED) {
+    use_fahrenheit = lv_obj_has_state(unit_switch, LV_STATE_CHECKED);
+  }
+
+  if (tgt == clock_24hr_switch && code == LV_EVENT_VALUE_CHANGED) {
+    use_24_hour = lv_obj_has_state(clock_24hr_switch, LV_STATE_CHECKED);
+  }
+
+  if (tgt == night_mode_switch && code == LV_EVENT_VALUE_CHANGED) {
+    use_night_mode = lv_obj_has_state(night_mode_switch, LV_STATE_CHECKED);
+  }
+
+  if (tgt == language_dropdown && code == LV_EVENT_VALUE_CHANGED) {
+    current_language = (Language)lv_dropdown_get_selected(language_dropdown);
+    // Update the UI immediately to reflect language change
+    lv_obj_del(settings_win);
+    settings_win = nullptr;
+    
+    // Save preferences and recreate UI with new language
+    prefs.putBool("useFahrenheit", use_fahrenheit);
+    prefs.putBool("use24Hour", use_24_hour);
+    prefs.putBool("useNightMode", use_night_mode);
+    prefs.putUInt("language", current_language);
+
+    lv_keyboard_set_textarea(kb, nullptr);
+    lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
+    
+    // Recreate the main UI with the new language
+    lv_obj_clean(lv_scr_act());
+    create_ui();
+    fetch_and_update_weather();
+    return;
+  }
+
+  if (tgt == btn_close_obj && code == LV_EVENT_CLICKED) {
+    prefs.putBool("useFahrenheit", use_fahrenheit);
+    prefs.putBool("use24Hour", use_24_hour);
+    prefs.putBool("useNightMode", use_night_mode);
+    prefs.putUInt("language", current_language);
+
+    lv_keyboard_set_textarea(kb, nullptr);
+    lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
+
+    lv_obj_del(settings_win);
+    settings_win = nullptr;
+
+    fetch_and_update_weather();
+  }
+}
+
+// Screen dimming functions implementation
+bool night_mode_should_be_active() {
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) return false;
+
+  if (!use_night_mode) return false;
+  
+  int hour = timeinfo.tm_hour;
+  return (hour >= NIGHT_MODE_START_HOUR || hour < NIGHT_MODE_END_HOUR);
+}
+
+void activate_night_mode() {
+  analogWrite(LCD_BACKLIGHT_PIN, 0);
+  night_mode_active = true;
+}
+
+void deactivate_night_mode() {
+  analogWrite(LCD_BACKLIGHT_PIN, prefs.getUInt("brightness", 128));
+  night_mode_active = false;
+}
+
+void check_for_night_mode() {
+  bool night_mode_time = night_mode_should_be_active();
+
+  if (night_mode_time && !night_mode_active && !temp_screen_wakeup_active) {
+    activate_night_mode();
+  } else if (!night_mode_time && night_mode_active) {
+    deactivate_night_mode();
+  }
+}
+
+void handle_temp_screen_wakeup_timeout(lv_timer_t *timer) {
+  if (temp_screen_wakeup_active) {
+    temp_screen_wakeup_active = false;
+
+    if (night_mode_should_be_active()) {
+      activate_night_mode();
+    }
+  }
+  
+  if (temp_screen_wakeup_timer) {
+    lv_timer_del(temp_screen_wakeup_timer);
+    temp_screen_wakeup_timer = nullptr;
+  }
+}
+
+void do_geocode_query(const char *q) {
+  geoDoc.clear();
+  String url = String("https://geocoding-api.open-meteo.com/v1/search?name=") + urlencode(q) + "&count=15";
+
+  HTTPClient http;
+  http.begin(url);
+  if (http.GET() == HTTP_CODE_OK) {
+    Serial.println("Completed location search at open-meteo: " + url);
+    auto err = deserializeJson(geoDoc, http.getString());
+    if (!err) {
+      geoResults = geoDoc["results"].as<JsonArray>();
+      populate_results_dropdown();
+    } else {
+        Serial.println("Failed to parse search response from open-meteo: " + url);
+    }
+  } else {
+      Serial.println("Failed location search at open-meteo: " + url);
+  }
+  http.end();
+}
+
+void fetch_and_update_weather() {
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi no longer connected. Attempting to reconnect...");
+    WiFi.disconnect();
+    WiFiManager wm;  
+    wm.autoConnect(DEFAULT_CAPTIVE_SSID);
+    delay(1000);  
+    if (WiFi.status() != WL_CONNECTED) { 
+      Serial.println("WiFi connection still unavailable.");
+      return;   
+    }
+    Serial.println("WiFi connection reestablished.");
+  }
+
+
+  String url = String("http://api.open-meteo.com/v1/forecast?latitude=")
+               + latitude + "&longitude=" + longitude
+               + "&current=temperature_2m,apparent_temperature,is_day,weather_code"
+               + "&daily=temperature_2m_min,temperature_2m_max,weather_code"
+               + "&hourly=temperature_2m,precipitation_probability,is_day,weather_code"
+               + "&forecast_hours=7"
+               + "&timezone=auto";
+
+  HTTPClient http;
+  http.begin(url);
+
+  if (http.GET() == HTTP_CODE_OK) {
+    Serial.println("Updated weather from open-meteo: " + url);
+
+    String payload = http.getString();
+    DynamicJsonDocument doc(32 * 1024);
+
+    if (deserializeJson(doc, payload) == DeserializationError::Ok) {
+      float t_now = doc["current"]["temperature_2m"].as<float>();
+      float t_ap = doc["current"]["apparent_temperature"].as<float>();
+      int code_now = doc["current"]["weather_code"].as<int>();
+      int is_day = doc["current"]["is_day"].as<int>();
+
+      if (use_fahrenheit) {
+        t_now = t_now * 9.0 / 5.0 + 32.0;
+        t_ap = t_ap * 9.0 / 5.0 + 32.0;
+      }
+      const LocalizedStrings* strings = get_strings(current_language);
+
+      int utc_offset_seconds = doc["utc_offset_seconds"].as<int>();
+      configTime(utc_offset_seconds, 0, "pool.ntp.org", "time.nist.gov");
+      Serial.print("Updating time from NTP with UTC offset: ");
+      Serial.println(utc_offset_seconds);
+
+      char unit = use_fahrenheit ? 'F' : 'C';
+      lv_label_set_text_fmt(lbl_today_temp, "%.0f°%c", t_now, unit);
+      lv_label_set_text_fmt(lbl_today_feels_like, "%s %.0f°%c", strings->feels_like_temp, t_ap, unit);
+      lv_img_set_src(img_today_icon, choose_image(code_now, is_day));
+
+      JsonArray times = doc["daily"]["time"].as<JsonArray>();
+      JsonArray tmin = doc["daily"]["temperature_2m_min"].as<JsonArray>();
+      JsonArray tmax = doc["daily"]["temperature_2m_max"].as<JsonArray>();
+      JsonArray weather_codes = doc["daily"]["weather_code"].as<JsonArray>();
+
+      for (int i = 0; i < 7; i++) {
+        const char *date = times[i];
+        int year = atoi(date + 0);
+        int mon = atoi(date + 5);
+        int dayd = atoi(date + 8);
+        int dow = day_of_week(year, mon, dayd);
+        const char *dayStr = (i == 0 && current_language != LANG_FR) ? strings->today : strings->weekdays[dow];
+
+        float mn = tmin[i].as<float>();
+        float mx = tmax[i].as<float>();
+        if (use_fahrenheit) {
+          mn = mn * 9.0 / 5.0 + 32.0;
+          mx = mx * 9.0 / 5.0 + 32.0;
+        }
+
+        lv_label_set_text_fmt(lbl_daily_day[i], "%s", dayStr);
+        lv_label_set_text_fmt(lbl_daily_high[i], "%.0f°%c", mx, unit);
+        lv_label_set_text_fmt(lbl_daily_low[i], "%.0f°%c", mn, unit);
+        lv_img_set_src(img_daily[i], choose_icon(weather_codes[i].as<int>(), (i == 0) ? is_day : 1));
+      }
+
+      JsonArray hours = doc["hourly"]["time"].as<JsonArray>();
+      JsonArray hourly_temps = doc["hourly"]["temperature_2m"].as<JsonArray>();
+      JsonArray precipitation_probabilities = doc["hourly"]["precipitation_probability"].as<JsonArray>();
+      JsonArray hourly_weather_codes = doc["hourly"]["weather_code"].as<JsonArray>();
+      JsonArray hourly_is_day = doc["hourly"]["is_day"].as<JsonArray>();
+
+      for (int i = 0; i < 7; i++) {
+        const char *date = hours[i];  // "YYYY-MM-DD"
+        int hour = atoi(date + 11);
+        int minute = atoi(date + 14);
+        String hour_name = hour_of_day(hour);
+
+        float precipitation_probability = precipitation_probabilities[i].as<float>();
+        float temp = hourly_temps[i].as<float>();
+        if (use_fahrenheit) {
+          temp = temp * 9.0 / 5.0 + 32.0;
+        }
+
+        if (i == 0 && current_language != LANG_FR) {
+          lv_label_set_text(lbl_hourly[i], strings->now);
+        } else {
+          lv_label_set_text(lbl_hourly[i], hour_name.c_str());
+        }
+        lv_label_set_text_fmt(lbl_precipitation_probability[i], "%.0f%%", precipitation_probability);
+        lv_label_set_text_fmt(lbl_hourly_temp[i], "%.0f°%c", temp, unit);
+        lv_img_set_src(img_hourly[i], choose_icon(hourly_weather_codes[i].as<int>(), hourly_is_day[i].as<int>()));
+      }
+
+
+    } else {
+      Serial.println("JSON parse failed on result from " + url);
+    }
+  } else {
+    Serial.println("HTTP GET failed at " + url);
+  }
+  http.end();
+}
+
+const lv_img_dsc_t* choose_image(int code, int is_day) {
+  switch (code) {
+    // Clear sky
+    case  0:
+      return is_day
+        ? &image_sunny
+        : &image_clear_night;
+
+    // Mainly clear
+    case  1:
+      return is_day
+        ? &image_mostly_sunny
+        : &image_mostly_clear_night;
+
+    // Partly cloudy
+    case  2:
+      return is_day
+        ? &image_partly_cloudy
+        : &image_partly_cloudy_night;
+
+    // Overcast
+    case  3:
+      return &image_cloudy;
+
+    // Fog / mist
+    case 45:
+    case 48:
+      return &image_haze_fog_dust_smoke;
+
+    // Drizzle (light → dense)
+    case 51:
+    case 53:
+    case 55:
+      return &image_drizzle;
+
+    // Freezing drizzle
+    case 56:
+    case 57:
+      return &image_sleet_hail;
+
+    // Rain: slight showers
+    case 61:
+      return is_day
+        ? &image_scattered_showers_day
+        : &image_scattered_showers_night;
+
+    // Rain: moderate
+    case 63:
+      return &image_showers_rain;
+
+    // Rain: heavy
+    case 65:
+      return &image_heavy_rain;
+
+    // Freezing rain
+    case 66:
+    case 67:
+      return &image_wintry_mix_rain_snow;
+
+    // Snow fall (light, moderate, heavy) & snow showers (light)
+    case 71:
+    case 73:
+    case 75:
+    case 85:
+      return &image_snow_showers_snow;
+
+    // Snow grains
+    case 77:
+      return &image_flurries;
+
+    // Rain showers (slight → moderate)
+    case 80:
+    case 81:
+      return is_day
+        ? &image_scattered_showers_day
+        : &image_scattered_showers_night;
+
+    // Rain showers: violent
+    case 82:
+      return &image_heavy_rain;
+
+    // Heavy snow showers
+    case 86:
+      return &image_heavy_snow;
+
+    // Thunderstorm (light)
+    case 95:
+      return is_day
+        ? &image_isolated_scattered_tstorms_day
+        : &image_isolated_scattered_tstorms_night;
+
+    // Thunderstorm with hail
+    case 96:
+    case 99:
+      return &image_strong_tstorms;
+
+    // Fallback for any other code
+    default:
+      return is_day
+        ? &image_mostly_cloudy_day
+        : &image_mostly_cloudy_night;
+  }
+}
+
+const lv_img_dsc_t* choose_icon(int code, int is_day) {
+  switch (code) {
+    // Clear sky
+    case  0:
+      return is_day
+        ? &icon_sunny
+        : &icon_clear_night;
+
+    // Mainly clear
+    case  1:
+      return is_day
+        ? &icon_mostly_sunny
+        : &icon_mostly_clear_night;
+
+    // Partly cloudy
+    case  2:
+      return is_day
+        ? &icon_partly_cloudy
+        : &icon_partly_cloudy_night;
+
+    // Overcast
+    case  3:
+      return &icon_cloudy;
+
+    // Fog / mist
+    case 45:
+    case 48:
+      return &icon_haze_fog_dust_smoke;
+
+    // Drizzle (light → dense)
+    case 51:
+    case 53:
+    case 55:
+      return &icon_drizzle;
+
+    // Freezing drizzle
+    case 56:
+    case 57:
+      return &icon_sleet_hail;
+
+    // Rain: slight showers
+    case 61:
+      return is_day
+        ? &icon_scattered_showers_day
+        : &icon_scattered_showers_night;
+
+    // Rain: moderate
+    case 63:
+      return &icon_showers_rain;
+
+    // Rain: heavy
+    case 65:
+      return &icon_heavy_rain;
+
+    // Freezing rain
+    case 66:
+    case 67:
+      return &icon_wintry_mix_rain_snow;
+
+    // Snow fall (light, moderate, heavy) & snow showers (light)
+    case 71:
+    case 73:
+    case 75:
+    case 85:
+      return &icon_snow_showers_snow;
+
+    // Snow grains
+    case 77:
+      return &icon_flurries;
+
+    // Rain showers (slight → moderate)
+    case 80:
+    case 81:
+      return is_day
+        ? &icon_scattered_showers_day
+        : &icon_scattered_showers_night;
+
+    // Rain showers: violent
+    case 82:
+      return &icon_heavy_rain;
+
+    // Heavy snow showers
+    case 86:
+      return &icon_heavy_snow;
+
+    // Thunderstorm (light)
+    case 95:
+      return is_day
+        ? &icon_isolated_scattered_tstorms_day
+        : &icon_isolated_scattered_tstorms_night;
+
+    // Thunderstorm with hail
+    case 96:
+    case 99:
+      return &icon_strong_tstorms;
+
+    // Fallback for any other code
+    default:
+      return is_day
+        ? &icon_mostly_cloudy_day
+        : &icon_mostly_cloudy_night;
+  }
+}
