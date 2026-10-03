@@ -38,12 +38,14 @@ jobs:
           mkdir -p site/firmware
           cp firmware/aura-e32r28t.bin "site/firmware/aura-e32r28t-${GITHUB_SHA}.bin"
 
+          export DEPLOY_VERSION="$GITHUB_SHA"
           python3 - <<'PY'
           import json
+          import os
           from pathlib import Path
 
           root = Path("site")
-          version = "${GITHUB_SHA}"
+          version = os.environ["DEPLOY_VERSION"]
 
           manifest = json.loads((root / "manifest-pages.json").read_text())
           manifest["version"] = version
