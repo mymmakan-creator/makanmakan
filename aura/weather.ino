@@ -527,15 +527,16 @@ void create_ui() {
   // Clock stays at the upper-right; Jalali date is placed opposite it at the upper-left.
   lbl_clock = lv_label_create(scr);
   lv_obj_set_style_text_font(lbl_clock, get_font_42(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_transform_zoom(lbl_clock, 220, LV_PART_MAIN);
   lv_obj_set_style_text_color(lbl_clock, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_label_set_text(lbl_clock, "--:--");
-  lv_obj_align(lbl_clock, LV_ALIGN_TOP_RIGHT, -6, 0);
+  lv_obj_align(lbl_clock, LV_ALIGN_TOP_RIGHT, -4, 0);
 
   lbl_jalali_date = lv_label_create(scr);
   lv_obj_set_style_text_font(lbl_jalali_date, get_font_20(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(lbl_jalali_date, lv_color_hex(0xb9ecff), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_label_set_text(lbl_jalali_date, "----/--/--");
-  lv_obj_align(lbl_jalali_date, LV_ALIGN_TOP_LEFT, 8, 0);
+  lv_obj_align(lbl_jalali_date, LV_ALIGN_TOP_LEFT, 2, 0);
 }
 
 void populate_results_dropdown() {
