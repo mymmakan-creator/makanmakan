@@ -535,7 +535,7 @@ void create_ui() {
   lv_obj_set_style_text_font(lbl_jalali_date, get_font_20(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(lbl_jalali_date, lv_color_hex(0xb9ecff), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_label_set_text(lbl_jalali_date, "----/--/--");
-  lv_obj_align(lbl_jalali_date, LV_ALIGN_TOP_LEFT, 6, 0);
+  lv_obj_align(lbl_jalali_date, LV_ALIGN_TOP_LEFT, 15, 0);
 }
 
 void populate_results_dropdown() {
