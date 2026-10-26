@@ -53,6 +53,7 @@ jobs:
           cp "$HOME/Arduino/libraries/lvgl/src/misc/lv_fs_private.h" build-src/CYD_MP3Player_LVGL/src/tjpgd/misc/lv_fs_private.h
           # Arduino CLI is resolving the LVGL headers but not linking its implementation sources;
           # compile the pinned LVGL source tree as part of the sketch to ensure all LVGL symbols exist.
+          mkdir -p build-src/CYD_MP3Player_LVGL/src/lvgl
           cp -R "$HOME/Arduino/libraries/lvgl/src" build-src/CYD_MP3Player_LVGL/src/lvgl/src
           # This project uses LovyanGFX, not LVGL platform drivers; exclude unrelated drivers.
           rm -rf build-src/CYD_MP3Player_LVGL/src/lvgl/src/drivers
