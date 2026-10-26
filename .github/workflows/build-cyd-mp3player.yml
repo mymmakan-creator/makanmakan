@@ -55,6 +55,8 @@ jobs:
           # compile the pinned LVGL source tree as part of the sketch to ensure all LVGL symbols exist.
           mkdir -p build-src/CYD_MP3Player_LVGL/src/lvgl
           cp -R "$HOME/Arduino/libraries/lvgl/src" build-src/CYD_MP3Player_LVGL/src/lvgl/src
+          # LVGL internal files use relative includes to the public root header.
+          cp "$HOME/Arduino/libraries/lvgl/lvgl.h" build-src/CYD_MP3Player_LVGL/src/lvgl/lvgl.h
           # This project uses LovyanGFX, not LVGL platform drivers; exclude unrelated drivers.
           rm -rf build-src/CYD_MP3Player_LVGL/src/lvgl/src/drivers
           # Optional LVGL libraries are not enabled by this project config and some use
