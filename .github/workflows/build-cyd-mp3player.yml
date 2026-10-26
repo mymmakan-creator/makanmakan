@@ -47,6 +47,41 @@ jobs:
           cp upstream/CYD_MP3Player_LVGL/assets/lv_conf/lv_conf.9.2.2.h "$HOME/Arduino/libraries/lv_conf.h"
           mkdir -p build-src
           cp -R upstream/CYD_MP3Player_LVGL build-src/CYD_MP3Player_LVGL
+          # Add serial diagnostics and explicitly enable the LCD backlight for hardware troubleshooting.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("build-src/CYD_MP3Player_LVGL/CYD_MP3Player_LVGL.ino")
+          s = p.read_text()
+          old = """void setup() {
+          #if (EXEC_CALIBRATION) || (DEBUG_AUDIO) || (DEBUG & 2)
+            Serial.begin(115200);
+            delay(1000);
+          #endif
+
+            init_peripherals();
+            tft_init();
+            lv_init();
+          """
+          new = """void setup() {
+            Serial.begin(115200);
+            delay(800);
+            Serial.println("[MP3-DIAG] setup start");
+
+            init_peripherals();
+            Serial.println("[MP3-DIAG] peripherals initialized");
+            tft_init();
+            Serial.println("[MP3-DIAG] tft_init returned");
+            tft.wakeup();
+            Serial.println("[MP3-DIAG] backlight wakeup called");
+            lv_init();
+            Serial.println("[MP3-DIAG] lv_init returned");
+          """
+          if old not in s:
+              raise SystemExit("Could not find expected setup() block; refusing to patch")
+          s = s.replace(old, new, 1)
+          s = s.replace("  ui_init();\n}", '  Serial.println("[MP3-DIAG] before ui_init");\n  ui_init();\n  Serial.println("[MP3-DIAG] ui_init returned");\n}', 1)
+          p.write_text(s)
+          PY
           # The upstream project vendors LVGL private headers that do not match LVGL 9.2.2.
           # Use the exact private headers from the pinned LVGL library for a reproducible build.
           cp "$HOME/Arduino/libraries/lvgl/src/draw/lv_image_decoder_private.h" build-src/CYD_MP3Player_LVGL/src/tjpgd/draw/lv_image_decoder_private.h
