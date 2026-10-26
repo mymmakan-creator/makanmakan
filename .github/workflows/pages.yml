@@ -37,6 +37,7 @@ jobs:
           cp -R web site
           mkdir -p site/firmware
           cp firmware/aura-e32r28t.bin "site/firmware/aura-e32r28t-${GITHUB_SHA}.bin"
+          cp firmware/cyd-mp3player.bin site/firmware/cyd-mp3player.bin
 
           export DEPLOY_VERSION="$GITHUB_SHA"
           python3 - <<'PY'
@@ -66,6 +67,8 @@ jobs:
         run: |
           test -s "site/firmware/aura-e32r28t-${GITHUB_SHA}.bin"
           grep -q "aura-e32r28t-${GITHUB_SHA}.bin" site/manifest-pages.json
+          test -s site/firmware/cyd-mp3player.bin
+          grep -q "../firmware/cyd-mp3player.bin" site/mp3/manifest.json
           grep -q "manifest-pages.json?v=${GITHUB_SHA}" site/index.html
 
       - name: Upload site
