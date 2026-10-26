@@ -61,8 +61,8 @@ jobs:
             --fqbn esp32:esp32:esp32 \
             --board-options PartitionScheme=huge_app \
             --libraries "$HOME/Arduino/libraries" \
-            --build-property "compiler.cpp.extra_flags=-DLV_CONF_INCLUDE_SIMPLE -I$HOME/Arduino/libraries" \
-            --build-property "compiler.c.extra_flags=-DLV_CONF_INCLUDE_SIMPLE -I$HOME/Arduino/libraries" \
+            --build-property "compiler.cpp.extra_flags=-DLV_CONF_INCLUDE_SIMPLE -I$HOME/Arduino/libraries -I$HOME/Arduino/libraries/lvgl/src" \
+            --build-property "compiler.c.extra_flags=-DLV_CONF_INCLUDE_SIMPLE -I$HOME/Arduino/libraries -I$HOME/Arduino/libraries/lvgl/src" \
             --export-binaries \
             --output-dir build/out \
             build-src/CYD_MP3Player_LVGL
