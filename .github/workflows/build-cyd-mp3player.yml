@@ -60,6 +60,9 @@ jobs:
           # Optional LVGL libraries are not enabled by this project config and some use
           # source-tree-relative includes that do not work when compiled as an Arduino sketch.
           rm -rf build-src/CYD_MP3Player_LVGL/src/lvgl/src/libs
+          # VG-Lite is an optional GPU backend and its sources include optional FreeType internals.
+          # The CYD uses LovyanGFX and does not enable LVGL VG-Lite.
+          rm -rf build-src/CYD_MP3Player_LVGL/src/lvgl/src/draw/vg_lite
           grep -Eq '^[[:space:]]*#define CYD_2432S028R_1USB' build-src/CYD_MP3Player_LVGL/config.h
           grep -Eq '^[[:space:]]*#define USE_LOVYANGFX' build-src/CYD_MP3Player_LVGL/config.h
 
