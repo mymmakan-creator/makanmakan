@@ -5,7 +5,6 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/build-cyd-mp3player.yml'
-      - 'firmware/cyd-mp3player.bin'
   workflow_dispatch:
 
 permissions:
@@ -48,8 +47,8 @@ jobs:
           cp upstream/CYD_MP3Player_LVGL/assets/lv_conf/lv_conf.9.2.2.h "$HOME/Arduino/libraries/lv_conf.h"
           mkdir -p build-src
           cp -R upstream/CYD_MP3Player_LVGL build-src/CYD_MP3Player_LVGL
-          grep -q '^#define CYD_2432S028R_1USB' build-src/CYD_MP3Player_LVGL/config.h
-          grep -q '^#define USE_LOVYANGFX' build-src/CYD_MP3Player_LVGL/config.h
+          grep -Eq '^[[:space:]]*#define CYD_2432S028R_1USB' build-src/CYD_MP3Player_LVGL/config.h
+          grep -Eq '^[[:space:]]*#define USE_LOVYANGFX' build-src/CYD_MP3Player_LVGL/config.h
 
       - name: Compile for ESP32-2432S028R
         run: |
