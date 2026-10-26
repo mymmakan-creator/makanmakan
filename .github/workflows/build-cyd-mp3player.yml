@@ -57,7 +57,7 @@ jobs:
           cp -R "$HOME/Arduino/libraries/lvgl/src" build-src/CYD_MP3Player_LVGL/src/lvgl/src
           # LVGL internal files use relative includes to the public root header.
           cp "$HOME/Arduino/libraries/lvgl/lvgl.h" build-src/CYD_MP3Player_LVGL/src/lvgl/lvgl.h
-          cp "$HOME/Arduino/libraries/lvgl/src/lv_version.h" build-src/CYD_MP3Player_LVGL/src/lvgl/lv_version.h
+          cp "$HOME/Arduino/libraries/lvgl/lv_version.h" build-src/CYD_MP3Player_LVGL/src/lvgl/lv_version.h
           # This project uses LovyanGFX, not LVGL platform drivers; exclude unrelated drivers.
           rm -rf build-src/CYD_MP3Player_LVGL/src/lvgl/src/drivers
           # Optional LVGL libraries are not enabled by this project config and some use
