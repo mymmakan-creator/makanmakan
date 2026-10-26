@@ -61,7 +61,7 @@ jobs:
           # This sketch uses LovyanGFX and does not enable LVGL optional drivers/libraries.
           # Remove their sources and the corresponding unconditional public-header includes.
           rm -rf build-src/CYD_MP3Player_LVGL/src/lvgl/src/drivers
-          find build-src/CYD_MP3Player_LVGL/src/lvgl/src/libs -mindepth 1 -maxdepth 1 ! -name bin_decoder -exec rm -rf {} +
+          find build-src/CYD_MP3Player_LVGL/src/lvgl/src/libs -mindepth 1 -maxdepth 1 ! -name bin_decoder ! -name rle -exec rm -rf {} +
           sed -i '/#include "src\/libs\//d; /#include "src\/drivers\/lv_drivers.h"/d' build-src/CYD_MP3Player_LVGL/src/lvgl/lvgl.h
           # LVGL core initializes the binary decoder when LV_USE_BIN_DECODER is enabled.
           sed -i '/#include "src\/layouts\/lv_layout.h"/i #include "src/libs/bin_decoder/lv_bin_decoder.h"' build-src/CYD_MP3Player_LVGL/src/lvgl/lvgl.h
