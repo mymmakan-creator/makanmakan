@@ -1,0 +1,91 @@
+name: Build CYD MP3Player LVGL
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/build-cyd-mp3player.yml'
+      - 'firmware/cyd-mp3player.bin'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: cyd-mp3player-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repository
+        uses: actions/checkout@v4
+
+      - name: Checkout upstream MP3 player source
+        uses: actions/checkout@v4
+        with:
+          repository: embedded-kiddie/CYD_MP3Player
+          ref: main
+          path: upstream
+
+      - name: Setup Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install ESP32 core and pinned libraries
+        run: |
+          arduino-cli config init
+          arduino-cli core update-index
+          arduino-cli core install esp32:esp32@2.0.17
+          arduino-cli lib install "LVGL@9.2.2"
+          arduino-cli lib install "LovyanGFX@1.2.7"
+          arduino-cli lib install "SdFat@2.3.0"
+          arduino-cli lib install "ArduinoJson@7.4.2"
+
+      - name: Prepare sketch and LVGL configuration
+        run: |
+          mkdir -p "$HOME/Arduino/libraries"
+          cp upstream/CYD_MP3Player_LVGL/assets/lv_conf/lv_conf.9.2.2.h "$HOME/Arduino/libraries/lv_conf.h"
+          mkdir -p build-src
+          cp -R upstream/CYD_MP3Player_LVGL build-src/CYD_MP3Player_LVGL
+          grep -q '^#define CYD_2432S028R_1USB' build-src/CYD_MP3Player_LVGL/config.h
+          grep -q '^#define USE_LOVYANGFX' build-src/CYD_MP3Player_LVGL/config.h
+
+      - name: Compile for ESP32-2432S028R
+        run: |
+          mkdir -p build/out
+          arduino-cli compile \
+            --fqbn esp32:esp32:esp32 \
+            --board-options PartitionScheme=huge_app \
+            --libraries "$HOME/Arduino/libraries" \
+            --export-binaries \
+            --output-dir build/out \
+            build-src/CYD_MP3Player_LVGL
+
+      - name: Merge bootloader, partitions, boot_app0 and application
+        run: |
+          python3 -m pip install --upgrade esptool
+          mkdir -p firmware
+          python3 -m esptool --chip esp32 merge-bin \
+            --output firmware/cyd-mp3player.bin \
+            --flash-mode dio \
+            --flash-freq 40m \
+            --flash-size 4MB \
+            0x1000 build/out/CYD_MP3Player_LVGL.ino.bootloader.bin \
+            0x8000 build/out/CYD_MP3Player_LVGL.ino.partitions.bin \
+            0xe000 "$HOME/.arduino15/packages/esp32/hardware/esp32/2.0.17/tools/partitions/boot_app0.bin" \
+            0x10000 build/out/CYD_MP3Player_LVGL.ino.bin
+          test -s firmware/cyd-mp3player.bin
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cyd-mp3player-esp32-2432s028r
+          path: firmware/cyd-mp3player.bin
+          if-no-files-found: error
+
+      - name: Commit firmware for GitHub Pages deployment
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: firmware/cyd-mp3player.bin
+          message: "Build CYD MP3Player LVGL firmware"
