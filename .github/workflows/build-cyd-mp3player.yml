@@ -53,10 +53,9 @@ jobs:
           cp "$HOME/Arduino/libraries/lvgl/src/misc/lv_fs_private.h" build-src/CYD_MP3Player_LVGL/src/tjpgd/misc/lv_fs_private.h
           # Arduino CLI is resolving the LVGL headers but not linking its implementation sources;
           # compile the pinned LVGL source tree as part of the sketch to ensure all LVGL symbols exist.
-          cp -R "$HOME/Arduino/libraries/lvgl/src" build-src/CYD_MP3Player_LVGL/src/lvgl
-          # This project uses LovyanGFX, not LVGL platform drivers; exclude unrelated drivers
-          # whose relative includes assume a different LVGL directory layout.
-          rm -rf build-src/CYD_MP3Player_LVGL/src/lvgl/drivers
+          cp -R "$HOME/Arduino/libraries/lvgl/src" build-src/CYD_MP3Player_LVGL/src/lvgl/src
+          # This project uses LovyanGFX, not LVGL platform drivers; exclude unrelated drivers.
+          rm -rf build-src/CYD_MP3Player_LVGL/src/lvgl/src/drivers
           grep -Eq '^[[:space:]]*#define CYD_2432S028R_1USB' build-src/CYD_MP3Player_LVGL/config.h
           grep -Eq '^[[:space:]]*#define USE_LOVYANGFX' build-src/CYD_MP3Player_LVGL/config.h
 
@@ -67,7 +66,7 @@ jobs:
             --fqbn esp32:esp32:esp32 \
             --board-options PartitionScheme=huge_app \
             --libraries "$HOME/Arduino/libraries" \
-            --build-property "compiler.cpp.extra_flags=-DLV_CONF_INCLUDE_SIMPLE -I$HOME/Arduino/libraries -I$HOME/Arduino/libraries/lvgl/src -I$HOME/Arduino/libraries/lvgl/src/draw -I$HOME/Arduino/libraries/lvgl/src/misc -I$GITHUB_WORKSPACE/build-src/CYD_MP3Player_LVGL/src/lvgl" \
+            --build-property "compiler.cpp.extra_flags=-DLV_CONF_INCLUDE_SIMPLE -I$HOME/Arduino/libraries -I$HOME/Arduino/libraries/lvgl/src -I$HOME/Arduino/libraries/lvgl/src/draw -I$HOME/Arduino/libraries/lvgl/src/misc -I$GITHUB_WORKSPACE/build-src/CYD_MP3Player_LVGL/src/lvgl/src" \
             --build-property "compiler.c.extra_flags=-DLV_CONF_INCLUDE_SIMPLE -I$HOME/Arduino/libraries -I$HOME/Arduino/libraries/lvgl/src -I$HOME/Arduino/libraries/lvgl/src/draw -I$HOME/Arduino/libraries/lvgl/src/misc -I$GITHUB_WORKSPACE/build-src/CYD_MP3Player_LVGL/src/lvgl" \
             --export-binaries \
             --output-dir build/out \
