@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>CYD MP3 Player — Web Flasher</title>
+  <style>
+    :root{color-scheme:dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:#101827;color:#f5f7fb;display:grid;place-items:center;padding:24px}
+    main{width:min(620px,100%);background:#182235;border:1px solid #2a3952;border-radius:24px;padding:clamp(22px,5vw,38px);box-shadow:0 24px 80px #0003}
+    .eyebrow{color:#9db8ff;font-size:.8rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+    h1{font-size:clamp(1.8rem,5vw,2.6rem);line-height:1.08;margin:.6rem 0 1rem}
+    p,li{color:#bac5d8;line-height:1.6}
+    .chip{display:inline-block;border:1px solid #35445d;border-radius:999px;padding:6px 10px;margin:3px 4px 3px 0;font-size:.82rem;color:#dbe5f7}
+    esp-web-install-button{display:block;margin:26px 0}
+    .warning{background:#302819;border:1px solid #725c2e;padding:14px 16px;border-radius:14px;color:#f5d99a;font-size:.92rem;line-height:1.55}
+    .small{font-size:.86rem}
+    a{color:#a9c4ff}
+    footer{margin-top:22px;border-top:1px solid #2a3952;padding-top:16px}
+  </style>
+  <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">MakanMakan · Firmware installer</div>
+    <h1>CYD MP3 Player</h1>
+    <p>Install the LVGL music-player firmware on the original CYD ESP32-2432S028R board with the ILI9341 240×320 display.</p>
+    <div>
+      <span class="chip">ESP32</span><span class="chip">ILI9341</span><span class="chip">LVGL 9.2.2</span><span class="chip">SD card audio</span>
+    </div>
+    <esp-web-install-button manifest="./manifest.json"></esp-web-install-button>
+    <div class="warning"><strong>Important:</strong> this installer erases the ESP32 flash and replaces the current firmware. Back up anything you need first. Use a data-capable USB cable and Chrome or Edge on desktop. The SD card's music files are not erased by flashing internal ESP32 memory.</div>
+    <h2>Before installing</h2>
+    <ol>
+      <li>Use the original CYD ESP32-2432S028R with ILI9341 display (one micro-USB port).</li>
+      <li>Connect the board directly to your computer with a USB data cable.</li>
+      <li>Click Install, choose the serial port, and confirm the prompts.</li>
+      <li>After flashing, insert a FAT32 microSD card with music in <code>/MP3/</code>, then reset the board.</li>
+    </ol>
+    <p class="small">The firmware is built automatically by GitHub Actions from the upstream <a href="https://github.com/embedded-kiddie/CYD_MP3Player">CYD_MP3Player</a> source with ESP32 core 2.0.17 and the project's LVGL configuration. If a build fails, the installer must not be treated as up to date.</p>
+    <footer><a href="../">← Back to Aura Web Flasher</a></footer>
+  </main>
+</body>
+</html>
