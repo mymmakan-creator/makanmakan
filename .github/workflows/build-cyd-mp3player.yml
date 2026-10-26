@@ -54,6 +54,9 @@ jobs:
           # Arduino CLI is resolving the LVGL headers but not linking its implementation sources;
           # compile the pinned LVGL source tree as part of the sketch to ensure all LVGL symbols exist.
           cp -R "$HOME/Arduino/libraries/lvgl/src" build-src/CYD_MP3Player_LVGL/src/lvgl
+          # This project uses LovyanGFX, not LVGL platform drivers; exclude unrelated drivers
+          # whose relative includes assume a different LVGL directory layout.
+          rm -rf build-src/CYD_MP3Player_LVGL/src/lvgl/drivers
           grep -Eq '^[[:space:]]*#define CYD_2432S028R_1USB' build-src/CYD_MP3Player_LVGL/config.h
           grep -Eq '^[[:space:]]*#define USE_LOVYANGFX' build-src/CYD_MP3Player_LVGL/config.h
 
