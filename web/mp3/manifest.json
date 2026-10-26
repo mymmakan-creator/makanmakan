@@ -7,7 +7,7 @@
       "chipFamily": "ESP32",
       "parts": [
         {
-          "path": "./firmware/cyd-mp3player.bin",
+          "path": "../firmware/cyd-mp3player.bin",
           "offset": 0
         }
       ]
