@@ -67,6 +67,12 @@ jobs:
             delay(800);
             Serial.println("[MP3-DIAG] setup start");
 
+            // CYD ESP32-2432S028R backlight is controlled by GPIO 21 (active HIGH).
+            pinMode(21, OUTPUT);
+            digitalWrite(21, HIGH);
+            delay(50);
+            Serial.println("[MP3-DIAG] GPIO21 backlight forced ON");
+
             init_peripherals();
             Serial.println("[MP3-DIAG] peripherals initialized");
             tft_init();
