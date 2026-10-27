@@ -83,3 +83,5 @@ jobs:
 # Trigger a fresh deployment after the MP3 firmware rebuild.
 
 # Redeploy Pages with the latest CYD backlight fix.
+
+# Redeploy Pages with CYD touch diagnostics firmware.
