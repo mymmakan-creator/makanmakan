@@ -86,6 +86,12 @@ jobs:
               raise SystemExit("Could not find expected setup() block; refusing to patch")
           s = s.replace(old, new, 1)
           s = s.replace("  ui_init();\n}", '  Serial.println("[MP3-DIAG] before ui_init");\n  ui_init();\n  Serial.println("[MP3-DIAG] ui_init returned");\n}', 1)
+          # Add explicit touch diagnostics: whether LovyanGFX detects the controller and raw touch coordinates.
+          g = Path("build-src/CYD_MP3Player_LVGL/gfx.hpp")
+          gs = g.read_text()
+          gs = gs.replace('  if (tft.touch()) {', '  Serial.printf("[MP3-DIAG] touch controller present: %s\\n", tft.touch() ? "YES" : "NO");\n  if (tft.touch()) {', 1)
+          gs = gs.replace('  bool touched = tft.getTouch(&x, &y);', '  bool touched = tft.getTouch(&x, &y);\n  static uint32_t last_touch_log = 0;\n  if (touched && millis() - last_touch_log > 250) { Serial.printf("[MP3-TOUCH] raw x=%u y=%u\\n", x, y); last_touch_log = millis(); }', 1)
+          g.write_text(gs)
           p.write_text(s)
           PY
           # The upstream project vendors LVGL private headers that do not match LVGL 9.2.2.
