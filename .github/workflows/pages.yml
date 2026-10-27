@@ -81,3 +81,5 @@ jobs:
         uses: actions/deploy-pages@v4
 
 # Trigger a fresh deployment after the MP3 firmware rebuild.
+
+# Redeploy Pages with the latest CYD backlight fix.
